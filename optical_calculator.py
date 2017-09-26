@@ -18,6 +18,7 @@ class Paint():
     current_item = None
     tool_bar_functions = ("pencil", "eraser", "clear", "calculate")
     selected_tool_bar_function = tool_bar_functions[0]
+    i = 0
 
     def __init__(self, root):
         """
@@ -81,18 +82,19 @@ class Paint():
         self.tool_bar = tk.Frame(self.top_frame, relief="raised")
         self.tool_bar.pack(fill="y", side="left", pady=3)
         self.create_tool_bar_buttons()
-        self.clear_button = tk.Button(self.tool_bar, text="AC", command=self.clear)
-        self.button.grid(row=3, sticky="nsew")
+        print(self.buttons_ref)
 
     def create_tool_bar_buttons(self):
         """
         Create and grid toolbar buttons, set their icon and connect them to their same named functions , corresponding to the tuple self.tool_bar_functions.
         """
+        self.buttons_ref = []
         for i, tool in enumerate(self.tool_bar_functions):
             icon = tk.PhotoImage(file="icons/" + tool + ".gif")
             self.button = tk.Button(self.tool_bar, image=icon, command=lambda i=i: self.on_tool_bar_button_clicked(i))
             self.button.grid(row=i, sticky="nsew")
             self.button.image = icon
+            self.buttons_ref.append(self.button)
 
     def on_tool_bar_button_clicked(self, index):
         """
@@ -108,6 +110,9 @@ class Paint():
         and call the respective function corresponding to the button(self.selected_tool_bar_function) by using eval
         """
         self.current_item = None
+        self.i = 0
+        for a in self.buttons_ref:
+            a.config(relief="raised")
         self.funcn = eval("self." + self.selected_tool_bar_function)
         self.funcn()
 
@@ -116,7 +121,10 @@ class Paint():
         Function called when user selects pencil from toolbar or tools menu
         Drawing an irregular line while mouse left click-and-drag in tkinter canvas
         """
-        self.current_item = self.canvas.create_line(self.start_x, self.start_y, self.end_x, self.end_y)
+        self.canvas.config(cursor="pencil")
+        self.buttons_ref[0].config(relief="flat")
+        if self.i != 0:
+            self.current_item = self.canvas.create_line(self.start_x, self.start_y, self.end_x, self.end_y)
         self.canvas.bind("<Button1-Motion>", self.pencil_helper)
 
     def pencil_helper(self, event=None):
@@ -125,6 +133,7 @@ class Paint():
         """
         self.start_x, self.start_y = self.end_x, self.end_y
         self.end_x, self.end_y = event.x, event.y
+        self.i += 1
         self.pencil()
 
     def eraser(self):
@@ -132,8 +141,11 @@ class Paint():
         Function called when user selects eraser from toolbar or tools menu
         Removes items under mouse while mouse left click-and-drag in tkinter canvas
         """
-        self.canvas.addtag_overlapping("toRemove", self.start_x - 5, self.start_y - 5, self.start_x + 5, self.start_x + 5)
-        self.canvas.delete("toRemove")
+        self.buttons_ref[1].config(relief="flat")
+        self.canvas.config(cursor="plus")
+        if self.i != 0:
+            self.canvas.addtag_overlapping("toRemove", self.start_x - 5, self.start_y - 5, self.start_x + 5, self.start_x + 5)
+            self.canvas.delete("toRemove")
         self.canvas.bind("<Button1-Motion>", self.eraser_helper)
 
     def eraser_helper(self, event=None):
@@ -142,6 +154,7 @@ class Paint():
         """
         self.start_x, self.start_y = self.end_x, self.end_y
         self.end_x, self.end_y = event.x, event.y
+        self.i += 1
         self.eraser()
 
     def clear(self, event=None):
@@ -149,17 +162,21 @@ class Paint():
         Function called when user selects trashcan from toolbar or tools menu or pressed Ctrl + N
         Clears the tkinter canvas
         """
+        self.buttons_ref[2].config(relief="flat")
         self.canvas.delete("all")
         self.selected_tool_bar_function = self.tool_bar_functions[0]
+        self.execute_selected_method()
 
     def calculate(self, event=None):
         """
         Function called when user clicks on "equals" button from toolbar or tool menu or pressed Enter/Return
         Calculates the value of the expression or operation in the canvas
         """
+        self.buttons_ref[3].config(relief="flat")
         self.screenshot(self.canvas_frame)
-        #processing here
+        # processing here
         self.selected_tool_bar_function = self.tool_bar_functions[0]
+        self.execute_selected_method()
 
     def screenshot(self, widget):
         """
@@ -256,6 +273,8 @@ class Paint():
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Optical Calculator")
+
+    root.resizable(False, False)
 
     # calling the Paint class constructor
     paint = Paint(root)
