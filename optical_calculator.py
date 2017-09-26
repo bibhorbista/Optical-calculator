@@ -82,7 +82,6 @@ class Paint():
         self.tool_bar = tk.Frame(self.top_frame, relief="raised")
         self.tool_bar.pack(fill="y", side="left", pady=3)
         self.create_tool_bar_buttons()
-        print(self.buttons_ref)
 
     def create_tool_bar_buttons(self):
         """
